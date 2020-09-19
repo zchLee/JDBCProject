@@ -1,9 +1,7 @@
-package com.lea.connection;
+package com.lea.connection1;
 
 import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -11,8 +9,6 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-
-import static java.sql.DriverManager.*;
 
 /**
  * @author lzc
@@ -37,42 +33,29 @@ public class ConnectionTest {
         System.out.println(conn);
     }
 
+    /*
+    方式二： 迭代方式一，动态获取Driver
+     */
     @Test
     public void test2() throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
-        String driver = "com.mysql.jdbc.Driver";
+        String driverClass = "com.mysql.jdbc.Driver";
         String url = "jdbc:mysql://localhost:3306/test";
         String username = "root";
         String password = "root";
-        Connection conn = getConnection(driver, url, username, password);
-        System.out.println(conn);
-    }
 
-
-    /**
-     * 方式二：
-     *
-     * 迭代方法一获取的数据库连接
-     *
-     * 通过不同驱动获取数据库连接对象
-     * @author: lzc
-     * @date: 2020/09/18 下午 1:42
-     * @param driverClass
-     * @param url
-     * @param user
-     * @param password
-     * @return: java.sql.Connection
-     */
-    public Connection getConnection(String driverClass, String url, String user, String password) throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException {
         // 通过反射获取Driver实现类对象：
         Class<?> clazz = Class.forName(driverClass);
         Driver driver = (Driver) clazz.newInstance();
         Properties info = new Properties();
-        info.setProperty("user", user);
+        info.setProperty("user", username);
         info.setProperty("password", password);
         // 提供要连接的数据库
         Connection connect = driver.connect(url, info);
-        return connect;
-    };
+        System.out.println(connect);
+    }
+
+
+
 
     /*
      方式三：DriverManager替换Driver
@@ -122,22 +105,33 @@ public class ConnectionTest {
 
     /*
     方法五： 将数据库需要的连接信息声明在配置文件中，通过读取配置方式，获得声明
+    好处：
+        1.将数据和程序分离，实现了解耦
+        2.方便修改配置文件
      */
     @Test
     public void test5() throws SQLException, ClassNotFoundException, IllegalAccessException, InstantiationException, IOException {
+        Connection conn = getConnection();
+        System.out.println(conn);
+    }
+
+    /*
+        最终方法
+     */
+    public static Connection getConnection() throws IOException, ClassNotFoundException, SQLException {
+        // 读取配置文件中的驱动，用户名，密码，url信息
         InputStream is = ConnectionTest.class.getClassLoader().getResourceAsStream("jdbc.properties");
         Properties properties = new Properties();
         properties.load(is);
 
-        String driver = properties.getProperty("driver");
+        String driver = properties.getProperty("driverClass");
         String url = properties.getProperty("url");
         String username = properties.getProperty("username");
         String password = properties.getProperty("password");
-
+        // 加载驱动
         Class.forName(driver);
         // 获取连接
         Connection conn = DriverManager.getConnection(url, username, password);
-
-        System.out.println(conn);
-    }
+        return conn;
+    };
 }
