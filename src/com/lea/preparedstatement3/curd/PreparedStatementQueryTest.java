@@ -20,7 +20,7 @@ import java.util.List;
  * @author lzc
  * @create 2020/09/19 下午 1:46
  */
-public class preparedStatementQueryTest {
+public class PreparedStatementQueryTest {
 
     public static void main(String[] args) throws Exception {
 //        String sql = "select id,name,email,birth from customers where id = ?";
